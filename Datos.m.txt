@@ -1,0 +1,198 @@
+%% Datos
+
+% Señales de entrada - Rangos
+
+% alpha
+
+alphamin = 0;
+alphamax = 1;
+
+alphaop = (alphamax - alphamin)/2 + alphamin;
+
+% Tstes
+
+Tstesmin = 77;
+Tstesmax = 100;
+
+Tstesop = (Tstesmax - Tstesmin)/2 + Tstesmin;
+
+% Teeva
+
+Teevamin = 10;
+Teevamax = 30;
+
+Teevaop = (Teevamax - Teevamin)/2 + Teevamin;
+
+% Tetorref
+
+Tetorrefmin = 25;
+Tetorrefmax = 31;
+
+Tetorrefop = (Tetorrefmax - Tetorrefmin)/2 + Tetorrefmin;
+
+% Tamb
+
+Tambmin = 20;
+Tambmax = 40;
+
+Tambop = (Tambmax - Tambmin)/2 + Tambmin;
+
+% Señales de Salida - Limitaciones
+
+% Tegen
+
+Tegenmin = 75;
+Tegenmax = 95;
+
+% Tseva
+
+Tsevamin = 5;
+
+%% Parametros BA
+
+deltaalpha = (alphamax - alphamin) * 0.1;
+deltaTstes = 0.1 * (Tstesmax - Tstesmin);
+deltaTeeva = 0.1 * (Teevamax - Teevamin);
+deltaTetorref = 0.1 * (Tetorrefmax - Tetorrefmin);
+deltaTamb = 0.1 * (Tambmax - Tambmin);
+
+%% Delta Alpha
+
+
+% Modelo GalphaTseva
+
+s = tf('s');
+
+K = (14.57 - 13.99)/(0.1);
+tau = 3052 - 3010;
+L = 3010 - 3000;
+
+GalphaTseva = K/(tau*s + 1) * exp(-L*s)
+
+% Modelo GalphaTsgen
+
+K = (75.87 - 77.35)/0.1;
+tau = 3037 - 3006;
+L = 3006 - 3000;
+
+GalphaTsgen = K/(tau*s + 1) * exp(-L*s)
+
+% Modelo GalphaTegen
+
+K = (80.92 - 82.93)/0.1;
+tau = 3013 - 3001;
+L = 3001 - 3000;
+
+GalphaTegen = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GalphaQeva
+
+K = (34.75 - 38.47)/0.1;
+tau = 3026 - 3004;
+L = 3004 - 3000;
+
+GalphaQeva = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GalphaQgen
+
+K = (46.53 - 51.64)/0.1;
+tau = 3026 - 3004;
+L = 3004 - 3000;
+
+GalphaQgen = K/(tau*s + 1) * exp(-s*L)
+
+%% Delta Torref
+
+s = tf('s');
+
+% Modelo GtorrefTseva
+
+K = (14.1976-13.9921)/deltaTetorref;
+tau = 3040 - 3000;
+L = 0;
+
+GtorrefTseva =  K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GtorrefTsgen
+
+K = (77.6686-77.3511)/deltaTetorref;
+tau = 3039-3000;
+L = 0;
+
+GtorrefTsgen = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GtorrefTegen
+
+K = (83.0843-82.9255)/deltaTetorref;
+tau = 3039-3000;
+L = 0;
+
+GtorrefTegen = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GtorrefQeva
+
+K = (37.157-38.4689)/deltaTetorref;
+tau = 017.9-3000
+L = 0;
+
+GtorrefQeva = K/(tau*s + 1) * exp(-s*L) 
+
+% Modelo GtorrefQgen
+
+K = 50.0227-51.6361/deltaTetorref;
+tau = 3017.75-3000;
+L = 0;
+
+GtorrefQgen =  K/(tau*s + 1) * exp(-s*L) 
+
+%% Delta Tamb
+
+% Todas las funciones de transferencia son 0
+
+%% Delta Tstes
+
+% Modelo GdeltaTstesTseva
+
+K = (13.43 - 13.99)/(90.8 - 88.5);
+L = 3008 - 3000;
+tau = 3044 - 3008;
+
+GdeltaTstesTseva = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GdeltaTstesTsgen
+
+K = (78.59 - 77.35)/(90.8 - 88.5);
+L = 3002 - 3000;
+tau = 3026 - 3002;
+
+GdeltaTstesTsgen = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GdeltaTstesQgen
+
+K = (56.76 - 51.63)/(90.8 - 88.5);
+L = 3001 - 3000;
+tau = 3018 - 3001;
+
+GdeltaTstesQgen = K/(tau*s + 1) * exp(-s*L)
+
+% Modelo GdeltaTstesQeva
+
+K = (42.09 - 38.47)/(90.8 - 88.5);
+L = 3001 - 3000;
+tau = 3018 - 3001;
+
+GdeltaTstesQeva = K/(tau*s + 1) * exp(-s*L)
+
+%% Delta Teeva
+
+% Modelo GdeltaTeevaTseva
+
+K = (15.99 - 13.99)/deltaTeeva;
+tau = 3022 - 3001;
+L = 3001 - 3000;
+
+GdeltaTeevaTseva = K/(tau*s + 1) * exp(-s*L)
+
+% El resto de modelos son 0.
+
+
