@@ -1,0 +1,42 @@
+\section{Punto de Operación e Identificación de los modelos del sistema}
+\label{sec:pto-op}
+	
+	
+	Para el diseño del controlador, se definió un punto de operación basado en los rangos de operación de la planta, seleccionando los valores medios para garantizar la mejor representatividad lineal del sistema:
+	
+	\begin{center}
+		\small
+		\begin{tabular}{ccccc}
+			$\bar{\alpha} = 0.5$ & $\bar{T}_{s,TES} = 88.5^\circ C$ & $\bar{T}_{e,eva} = 20^\circ C$ & $\bar{T}_{e,torr} = 28^\circ C$ & $\bar{T}_{amb} = 30^\circ C$ \\
+		\end{tabular}
+	\end{center}
+	
+	A partir de ensayos de escalón en estos puntos de operación, se identificaron las funciones de transferencia de primer orden con retraso para la planta principal ($G_p$) y las perturbaciones medibles:
+	
+	\begin{minipage}{0.48\textwidth}
+		\small
+		\begin{equation*}
+			G_p(s) = \frac{5.8}{42s+1}e^{-10s} 
+		\end{equation*}
+		\begin{equation*}
+			G_{d,eva}(s) = \frac{1.0}{21s+1}e^{-1s}
+		\end{equation*}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.48\textwidth}
+		\small
+		\begin{equation*}
+			G_{d,TES}(s) = \frac{-0.2435}{36s+1}e^{-8s}
+		\end{equation*}
+		\begin{equation*}
+			G_{d,torr}(s) = \frac{0.3425}{40s+1}
+		\end{equation*}
+	\end{minipage}
+		\vspace{0.5em}
+		
+	La perturbación debida a la temperatura ambiente ($T_{amb}$) se ha considerado nula debido al mínimo impacto que tiene en nuestro lazo principal del sistema. \\
+	\vspace{0.5em}
+	
+	El análisis de estas dinámicas revela que el sistema está dominado por un retardo de 10 segundos en la acción de control ($\alpha \to T_{s,evap}$). \\
+	Este desfase físico nos advierte que se limita severamente la agresividad del lazo cerrado, ya que cualquier intento de aumentar la ganancia del PID sin compensación adicional provocaría inestabilidad. \\
+	Por otro lado podemos observar que dos de las perturbaciones tienen a su vez un retraso, en especial la debida a $Ts_{TES}$, lo que nos advierte también de que puede causar problemas al intentar rechazarlas. 
