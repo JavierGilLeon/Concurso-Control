@@ -62,4 +62,90 @@
 	\tableofcontents
 	\newpage
 	
+	\section{Punto de Operación e Identificación de los modelos del sistema}
+	
+	Para el diseño del controlador, se definió un punto de operación basado en los rangos de operación de la planta, seleccionando los valores medios para garantizar la mejor representatividad lineal del sistema:
+	
+	\begin{center}
+		\small
+		\begin{tabular}{ccccc}
+			$\bar{\alpha} = 0.5$ & $\bar{T}_{s,TES} = 88.5^\circ C$ & $\bar{T}_{e,eva} = 20^\circ C$ & $\bar{T}_{e,torr} = 28^\circ C$ & $\bar{T}_{amb} = 30^\circ C$ \\
+		\end{tabular}
+	\end{center}
+	
+	A partir de ensayos de escalón en estos puntos de operación, se identificaron las funciones de transferencia de primer orden con retraso para la planta principal ($G_p$) y las perturbaciones medibles:
+	
+	\begin{minipage}{0.48\textwidth}
+		\small
+		\begin{equation*}
+			G_p(s) = \frac{5.8}{42s+1}e^{-10s} 
+		\end{equation*}
+		\begin{equation*}
+			G_{d,eva}(s) = \frac{1.0}{21s+1}e^{-1s}
+		\end{equation*}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.48\textwidth}
+		\small
+		\begin{equation*}
+			G_{d,TES}(s) = \frac{-0.2435}{36s+1}e^{-8s}
+		\end{equation*}
+		\begin{equation*}
+			G_{d,torr}(s) = \frac{0.3425}{40s+1}
+		\end{equation*}
+	\end{minipage}
+		\vspace{0.5em}
+		
+	La perturbación debida a la temperatura ambiente ($T_{amb}$) se ha considerado nula debido al mínimo impacto que tiene en nuestro lazo principal del sistema. \\
+	\vspace{0.5em}
+	
+	El análisis de estas dinámicas revela que el sistema está dominado por un retardo de 10 segundos en la acción de control ($\alpha \to T_{s,evap}$). \\
+	Este desfase físico nos advierte que se limita severamente la agresividad del lazo cerrado, ya que cualquier intento de aumentar la ganancia del PID sin compensación adicional provocaría inestabilidad. \\
+	Por otro lado podemos observar que dos de las perturbaciones tienen a su vez un retraso, en especial la debida a $Ts_{TES}$, lo que nos advierte también de que puede causar problemas al intentar rechazarlas. 
+	
+	\section{Arquitectura del sistema de control propuesto}
+	
+	Una vez se ha identificado el sistema y obtenido los modelos necesarios, podemos comenzar a implementar el lazo de control de la forma más óptima posible para nuestras características.\\
+	En todo momento se tendrán en cuenta los dos índices de desempeño que se valorarán a la hora de calcular el índice global, optimizando tanto el seguimiento y rechazo a perturbaciones como el esfuerzo de control. \\
+	
+	Cabe destacar que, para su implementación, se ha decidido usar un bloque "MATLAB Function" para poder programarlo todo en su interior, de forma que quede de la forma más legible y compacta posible. \\
+	
+	 
+	\subsection{Controlador PID}
+	
+	El núcleo del sistema de control propuesto es un algoritmo PID discreto.
+	$$u(t) = u_0 + K_p \cdot e(t) + \frac{K_p}{T_i} \int_{0}^{t} e(\tau) d\tau + K_d \frac{de(t)}{dt}$$  
+	
+	De primeras podemos esperar uno de los problemas principales a solucionar en estos controladores, el latigazo derivativo.\\ 
+	En su forma estándar, la ley de control actúa sobre el error $e(t) = r(t) - y(t)$. Sin embargo, si la acción derivativa se aplica directamente sobre este error, cualquier cambio en escalón de la referencia $r(t)$ genera una derivada que tiende a infinito. Este fenómeno provocaría un pico (latigazo) en nuestra señal de control, pudiendo llegar a saturarla y penalizando el índice del esfuerzo de control $TV$ ($R_2$). \\
+	
+	Para evitar esto, se implementa el controlador con factor de peso en la referencia de $c=0$ para la acción derivativa. Dado que la derivada de una constante es cero, se asume que $\frac{de(t)}{dt} \approx -\frac{dy(t)}{dt}$. De esta forma, el derivativo solo observa los cambios en la variable de proceso (la temperatura del evaporador $T_{s,evap}$) de forma que evitemos esa reacción ante los escalones en la referencia.\\
+	$$u(t) = u_0 + K_p \cdot e(t) + \frac{K_p}{T_i} \int_{0}^{t} e(\tau) d\tau - K_d \frac{dy(t)}{dt}$$
+	
+	La ley de control discreta implementada se define mediante las siguientes ecuaciones, donde además se ha incluido un filtro pasabajos ($N=10$) en la acción $D$ para evitar amplificar el ruido del sensor:
+	
+	\begin{equation}
+		P_k = K_p \cdot e_k \quad ; \quad I_k = I_{k-1} + \frac{K_p}{T_i} e_k T_s
+	\end{equation}
+	\begin{equation}
+		D_k = \frac{K_d \cdot N}{K_d + N \cdot T_s} \left( - \left( y_k - y_{k-1} \right) \right) + \frac{K_d}{K_d + N \cdot T_s} D_{k-1}
+	\end{equation}
+	\begin{equation}
+		u = u_0 + P_k + I_k + D_k
+	\end{equation}
+	
+	\subsection{Anti-Windup (AWP)}
+	Posteriormente pasamos a implementar un algoritmo de Anti-Windup. \\
+	
+	Dado que el actuador (válvula de tres vías) posee límites operativos estrictos en el rango convencional $[0, 1]$, el sistema es propenso a entrar en saturación ante demandas térmicas elevadas o perturbaciones grandes. En estas condiciones, nuestra acción integral  continuaría acumularía error, lo que provocaría que, una vez la variable de proceso dejase de saturar, el sistema tarde un tiempo excesivo en reaccionar (hasta que se corrija ese error acumulado), pudiendo generar además oscilaciones al volver a seguir la referencia.\\
+	
+	Para solventar este problema, se ha implementado la técnica de \textbf{Anti-Windup mediante realimentación de la diferencia de salida} (\textit{Back-calculation}). El algoritmo calcula en cada instante la diferencia entre la señal de control ideal ($u_{unsat}$) y la señal físicamente posible tras la saturación ($u_{sat}$), utilizando este error para corregir el estado del integrador y que no acumule error.
+	
+	
+	\begin{equation}
+		e_{aw,k} = u_{sat,k} - u_{unsat,k} \quad ; \quad I_{k} = I_{k,calc} + \frac{T_s}{T_t} e_{aw,k}
+	\end{equation}
+	
+	Donde $I_{k,calc}$ es la acción integral calculada previamente y $T_t$ es la constante de tiempo de seguimiento. La inclusión de este mecanismo garantiza que el integrador se mantenga en un valor coherente con los límites del actuador, permitiendo una salida de la saturación inmediata y suave. La constante $T_t$ se ajustará al final en función del resto de parámetros. 
+	
 \end{document}
