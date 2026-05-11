@@ -1,4 +1,10 @@
 *.zip
 *.slxc
 *.asv
+*.aux
+*.toc
+*.fls
+*.fdb_latexmk
+*.log
+*.gz
 
