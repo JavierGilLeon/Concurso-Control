@@ -1,3 +1,4 @@
+
 \section{Arquitectura del sistema de control propuesto}
 \label{arch-ctrl}
 	
@@ -42,4 +43,18 @@
 		e_{aw,k} = u_{sat,k} - u_{unsat,k} \quad ; \quad I_{k} = I_{k,calc} + \frac{T_s}{T_t} e_{aw,k}
 	\end{equation}
 	
-	Donde $I_{k,calc}$ es la acción integral calculada previamente y $T_t$ es la constante de tiempo de seguimiento. La inclusión de este mecanismo garantiza que el integrador se mantenga en un valor coherente con los límites del actuador, permitiendo una salida de la saturación inmediata y suave. La constante $T_t$ se ajustará al final en función del resto de parámetros. 
+	Donde $I_{k,calc}$ es la acción integral calculada previamente y $T_t$ es la constante de tiempo de seguimiento.  La constante $T_t$ se ajustará al final en función del resto de parámetros. 
+	
+	\subsection{Filtrado de la Referencia}
+	
+	Para evitar saltos violentos en la acción de control ante un cambio en la referencia se ha implementado un filtrado. De esta forma evitamos picos instantáneos de error que puedan disparar nuestro efecto proporcional ($P_k = K_p \cdot e_k$) y, al mismo tiempo, conseguimos tener un rechazo de perturbaciones lo suficientemente rápido. \\
+	
+Para ello, se ha introducido un filtro paso-bajo de primer orden en la señal de referencia. De este modo, la referencia que ve el PID ya no cambia de forma escalonada sino que tiene el comportamiento de un sistema de primer orden.  
+	
+	La función de transferencia en tiempo continuo del filtro y su correspondiente ecuación en diferencias (para implementarla) son:
+	
+	\begin{equation}
+		R_{filt}(s) = \frac{1}{T_f s + 1} R(s) \quad \Longrightarrow \quad R_{filt,k} = R_{filt,k-1} + \frac{T_s}{T_f + T_s} \left( R_k - R_{filt,k-1} \right)
+	\end{equation}
+	
+	Donde $T_f$ es la constante de tiempo del filtro, que se ajustará también al final.  

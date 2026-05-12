@@ -35,8 +35,9 @@
 		\vspace{0.5em}
 		
 	La perturbación debida a la temperatura ambiente ($T_{amb}$) se ha considerado nula debido al mínimo impacto que tiene en nuestro lazo principal del sistema. \\
-	\vspace{0.5em}
-	
-	El análisis de estas dinámicas revela que el sistema está dominado por un retardo de 10 segundos en la acción de control ($\alpha \to T_{s,evap}$). \\
-	Este desfase físico nos advierte que se limita severamente la agresividad del lazo cerrado, ya que cualquier intento de aumentar la ganancia del PID sin compensación adicional provocaría inestabilidad. \\
-	Por otro lado podemos observar que dos de las perturbaciones tienen a su vez un retraso, en especial la debida a $Ts_{TES}$, lo que nos advierte también de que puede causar problemas al intentar rechazarlas. 
+	\begin{itemize}
+	\item El análisis de estas dinámicas revela que el sistema está dominado por un retardo de 10 segundos en la acción de control ($\alpha \to T_{s,evap}$). \\
+	Este desfase físico nos advierte que se limita severamente la agresividad del lazo cerrado, ya que cualquier intento de aumentar la ganancia del PID sin compensación adicional provocaría inestabilidad. 
+	\item Por otro lado podemos observar que dos de las perturbaciones tienen a su vez un retraso, en especial la debida a $Ts_{TES}$, lo que nos advierte también de que puede causar problemas al intentar rechazarlas. 
+\item También se ha observado que las perturbaciones se afectan a su vez a entre sí, estableciendo también relaciones de transferencia entre ellas. Se han obtenido también estos modelos y se tendrá en cuenta este comportamiento a la hora de diseñar el controlador. \\
+	\end{itemize}
