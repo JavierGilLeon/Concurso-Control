@@ -5,7 +5,7 @@
 	Una vez se ha identificado el sistema y obtenido los modelos necesarios, podemos comenzar a implementar el lazo de control de la forma más óptima posible para nuestras características.\\
 	En todo momento se tendrán en cuenta los dos índices de desempeño que se valorarán a la hora de calcular el índice global, optimizando tanto el seguimiento y rechazo a perturbaciones como el esfuerzo de control. \\
 	
-	Cabe destacar que, para su implementación, se ha decidido usar un bloque "MATLAB Function" para poder programarlo todo en su interior, de forma que quede de la forma más legible y compacta posible. \\
+	Cabe destacar que, para su implementación, se ha decidido usar un bloque "MATLAB Function" para poder programarlo todo en su interior, de forma que quede de la manera mejor y más compacta posible. \\
 	
 	 
 	\subsection{Controlador PID}
@@ -58,3 +58,72 @@ Para ello, se ha introducido un filtro paso-bajo de primer orden en la señal de
 	\end{equation}
 	
 	Donde $T_f$ es la constante de tiempo del filtro, que se ajustará también al final.  
+	
+	\subsection{Feedforward}
+	
+	Ante perturbaciones rápidas, como cambios en la carga térmica del edificio, el controlador PID tardaría demasiado en observar el error y reaccionar, degradando severamente los índices de desempeño.\\\\
+	 Para mitigar este efecto, se implementó una red de compensación anticipativa (\textit{Feedforward}) para las tres perturbaciones de mayor impacto: temperatura de retorno del evaporador ($T_{e,eva}$), salida del acumulador ($T_{s,TES}$) y retorno de la torre de refrigeración ($T_{e,torr,ref}$).\\
+	
+	
+	Como se observó al identificar los modelos, el sistema cuenta con un retardo de 10 segundos. A su vez, las perturbaciones también tienen un retraso a la hora de afectar a la salida del sistema y encima están relacionadas entre sí, es decir, un cambio en una perturbación puede afectar a las demás y con retardos distintos.\\ 
+	
+	La acción de control anticipativa ideal requeriría invertir la dinámica de la planta, lo cual es difícilmente realizable debido a estos retardos. Por ello, se optó por un compensador estático basado en cancelar las ganancias en régimen permanente, donde la aportación base de cada perturbación se calcula como; $$FF_i = -K_{d,i} / K_p$$
+	
+	Sin embargo, aplicar una cancelación del 100\% volvería al sistema inestable, debido a los retrasos comentados. Para evitarlo, se introdujeron factores de ponderación ($K_{ff,i}$) ajustan la agresividad de la compensación. La ley de control feedforward implementada es:
+	
+	\begin{equation}
+		u_{ff} = \sum_{i} K_{ff,i} \cdot FF_i \cdot \left( d_i(t) - \bar{d}_i \right)
+	\end{equation}
+	
+	Donde $d_i(t)$ es el valor actual de la perturbación y $\bar{d}_i$ su punto de operación que definimos al comienzo.\\
+	
+	  Los factores de ponderación que se han considerado los óptimos son: 
+	   \begin{equation*}
+	   	K_{ff,eva} = 0.87 \qquad K_{ff,tor} = 0.90 \qquad K_{ff,tes} = 0.63
+	   \end{equation*}
+	Si observamos los modelos obtenidos, podemos ver perfectamente la relación entre el retraso de cada perturbación y la capacidad que tenemos de cancelarla sin inestabilizar el sistema. \\
+	
+	\subsubsection{Cosas descartadas}
+ \begin{itemize}
+	 \item Se descartó la inclusión de la temperatura ambiente ($T_{amb}$) por tener una dinámica excesivamente lenta, la cual es absorbida sin demasiado esfuerzo por la propia acción integral del PID.
+	 \item Asimismo, se decidió no emplear las temperaturas intermedias del generador ($T_{e,gen}$, $T_{s,gen}$), evitando posibles controles en cascada que, ante el número de retardos observados, reducían la robustez del sistema y no mejoraban el control significativamente. Atacar el problema desde el origen mediante un \textit{Feedforward} demostró ser una solución más directa, limpia y robusta.
+	 \end {itemize}
+	 \subsection{Ajuste de los parámetros}
+	 
+	Para sintonizar el PID se empleó de primeras el método de ajuste AMIGO:
+	\begin{center}
+		\small
+		$K_p = \frac{1}{K} ( 0.2 + 0.45 \frac{\tau}{L} )$ \quad $T_i = L ( \frac{0.4L + 0.8\tau}{L + 0.1\tau} )$ \quad $T_d = L ( \frac{0.5\tau}{0.3L + \tau} ) $
+	\end{center}
+	Posteriormente se ajustaron manualmente junto al resto de parámetros para optimizar los índices de rendimiento del controlador sin dejar de asegurar la estabilidad del sistema.\\
+	
+	 El conjunto final de parámetros se detalla en la siguiente tabla:
+	 
+	 \begin{center}
+	 	\small
+	 	\begin{tabular}{|l|c|r|}
+	 		\hline
+	 		\textbf{Descripción del Parámetro} & \textbf{Símbolo} & \textbf{Valor} \\
+	 		\hline
+	 		Ganancia Proporcional & $K_p$ & $0.365$ \\
+	 		\hline
+	 		Tiempo Integral & $T_i$ & $35$ s \\
+	 		\hline
+	 		Ganancia Derivativa & $K_d$ & $4.5$ \\
+	 		\hline
+	 		Filtro de Referencia & $T_f$ & $1.7$ s \\
+	 		\hline
+	 		Constante Anti-Windup & $T_t$ & $10$ s \\
+	 		\hline
+	 		Filtro de Acción Derivativa & $N$ & $10$ \\
+	 		\hline
+	 		Tiempo de Muestreo & $T_s$ & $2.8$ s \\
+	 		\hline
+	 		Factor Feedforward Edificio & $K_{ff,eva}$ & $0.87$ \\
+	 		\hline
+	 		Factor Feedforward Torre & $K_{ff,tor}$ & $0.90$ \\
+	 		\hline
+	 		Factor Feedforward TES & $K_{ff,tes}$ & $0.63$ \\
+	 		\hline
+	 	\end{tabular}
+	 \end{center}

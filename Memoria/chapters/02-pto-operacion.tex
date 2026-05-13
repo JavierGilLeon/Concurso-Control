@@ -35,6 +35,9 @@
 		\vspace{0.5em}
 		
 	La perturbación debida a la temperatura ambiente ($T_{amb}$) se ha considerado nula debido al mínimo impacto que tiene en nuestro lazo principal del sistema. \\
+	
+	Vista la constante de tiempo del sistema, se tomará como tiempo de muestreo: 
+	$$42/15 =2.8 s$$
 	\begin{itemize}
 	\item El análisis de estas dinámicas revela que el sistema está dominado por un retardo de 10 segundos en la acción de control ($\alpha \to T_{s,evap}$). \\
 	Este desfase físico nos advierte que se limita severamente la agresividad del lazo cerrado, ya que cualquier intento de aumentar la ganancia del PID sin compensación adicional provocaría inestabilidad. 

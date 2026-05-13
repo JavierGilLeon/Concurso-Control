@@ -52,7 +52,7 @@ fprintf('Kd = %.4f\n', Kd_itae_pid);
 % =========================================================================
 
 
-clear; clc;
+ clc;
 
 % Ganancias estáticas de las perturbaciones 
 K_eva =  1.0000;   % Te_evap
