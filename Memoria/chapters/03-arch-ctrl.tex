@@ -17,19 +17,21 @@
 	En su forma estándar, la ley de control actúa sobre el error $e(t) = r(t) - y(t)$. Sin embargo, si la acción derivativa se aplica directamente sobre este error, cualquier cambio en escalón de la referencia $r(t)$ genera una derivada que tiende a infinito. Este fenómeno provocaría un pico (latigazo) en nuestra señal de control, pudiendo llegar a saturarla y penalizando el índice del esfuerzo de control $TV$ ($R_2$). \\
 	
 	Para evitar esto, se implementa el controlador con factor de peso en la referencia de $c=0$ para la acción derivativa. Dado que la derivada de una constante es cero, se asume que $\frac{de(t)}{dt} \approx -\frac{dy(t)}{dt}$. De esta forma, el derivativo solo observa los cambios en la variable de proceso (la temperatura del evaporador $T_{s,evap}$) de forma que evitemos esa reacción ante los escalones en la referencia.\\
-	$$u(t) = u_0 + K_p \cdot e(t) + \frac{K_p}{T_i} \int_{0}^{t} e(\tau) d\tau - K_d \frac{dy(t)}{dt}$$
 	
-	La ley de control discreta implementada se define mediante las siguientes ecuaciones, donde además se ha incluido un filtro pasabajos ($N=10$) en la acción $D$ para evitar amplificar el ruido del sensor:
+	Asimismo, con el objetivo de suavizar la respuesta inicial del actuador y mitigar sobreimpulsos ante cambios de referencia mientras que no se perjudica la velocidad de rechazo a perturbaciones, se introduce un factor de ponderación $b$ en la referencia para la acción proporcional. De este modo la ley de control queda redefinida como: \\
+	$$u(t) = u_0 + K_p \cdot (b \cdot r(t) - y(t)) + \frac{K_p}{T_i} \int_{0}^{t} e(\tau) d\tau - K_d \frac{dy(t)}{dt}$$
 	
-	\begin{equation}
-		P_k = K_p \cdot e_k \quad ; \quad I_k = I_{k-1} + \frac{K_p}{T_i} e_k T_s
-	\end{equation}
-	\begin{equation}
-		D_k = \frac{K_d \cdot N}{K_d + N \cdot T_s} \left( - \left( y_k - y_{k-1} \right) \right) + \frac{K_d}{K_d + N \cdot T_s} D_{k-1}
-	\end{equation}
-	\begin{equation}
-		u = u_0 + P_k + I_k + D_k
-	\end{equation}
+La ley de control discreta implementada se define mediante las siguientes ecuaciones, donde además se ha incluido un filtro pasabajos ($N=10$) en la acción $D$ para evitar amplificar el ruido del sensor:
+
+\begin{equation}
+	P_k = K_p \cdot (b \cdot r_k - y_k) \quad ; \quad I_k = I_{k-1} + \frac{K_p}{T_i} e_k T_s
+\end{equation}
+\begin{equation}
+	D_k = \frac{K_d \cdot N}{K_d + N \cdot T_s} \left( - \left( y_k - y_{k-1} \right) \right) + \frac{K_d}{K_d + N \cdot T_s} D_{k-1}
+\end{equation}
+\begin{equation}
+	u = u_0 + P_k + I_k + D_k
+\end{equation}
 	
 	\subsection{Anti-Windup (AWP)}
 	Posteriormente pasamos a implementar un algoritmo de Anti-Windup. \\
@@ -105,11 +107,13 @@ Para ello, se ha introducido un filtro paso-bajo de primer orden en la señal de
 	 		\hline
 	 		\textbf{Descripción del Parámetro} & \textbf{Símbolo} & \textbf{Valor} \\
 	 		\hline
-	 		Ganancia Proporcional & $K_p$ & $0.365$ \\
+	 		Ganancia Proporcional & $K_p$ & $0.57$ \\
 	 		\hline
 	 		Tiempo Integral & $T_i$ & $35$ s \\
 	 		\hline
 	 		Ganancia Derivativa & $K_d$ & $4.5$ \\
+	 		\hline
+	 		Factor de ponderación de la acción proporcional & b & $0.5$ \\
 	 		\hline
 	 		Filtro de Referencia & $T_f$ & $1.7$ s \\
 	 		\hline
