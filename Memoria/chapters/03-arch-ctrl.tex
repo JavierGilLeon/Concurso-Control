@@ -5,7 +5,7 @@
 	Una vez se ha identificado el sistema y obtenido los modelos necesarios, podemos comenzar a implementar el lazo de control de la forma más óptima posible para nuestras características.\\
 	En todo momento se tendrán en cuenta los dos índices de desempeño que se valorarán a la hora de calcular el índice global, optimizando tanto el seguimiento y rechazo a perturbaciones como el esfuerzo de control. \\
 	
-	Cabe destacar que, para su implementación, se ha decidido usar un bloque "MATLAB Function" para poder programarlo todo en su interior, de forma que quede de la manera mejor y más compacta posible. \\
+	Cabe destacar que se va a implementar el controlador en tiempo discreto, empleando un bloque "MATLAB Function" para poder programarlo todo en su interior, el propio bloque permite fijar el sample time en nuestro Ts (2 segundos). De esta forma el controlador queda de la mejor y más compacta forma posible. \\
 	
 	 
 	\subsection{Controlador PID}
@@ -109,19 +109,19 @@ Para ello, se ha introducido un filtro paso-bajo de primer orden en la señal de
 	 		\hline
 	 		Ganancia Proporcional & $K_p$ & $0.57$ \\
 	 		\hline
-	 		Tiempo Integral & $T_i$ & $35$ s \\
+	 		Tiempo Integral & $T_i$ & $25$ s \\
 	 		\hline
 	 		Ganancia Derivativa & $K_d$ & $4.5$ \\
 	 		\hline
 	 		Factor de ponderación de la acción proporcional & b & $0.5$ \\
 	 		\hline
-	 		Filtro de Referencia & $T_f$ & $1.7$ s \\
+	 		Filtro de Referencia & $T_f$ & $1.214$ s \\
 	 		\hline
-	 		Constante Anti-Windup & $T_t$ & $10$ s \\
+	 		Constante Anti-Windup & $T_t$ & $7.14$ s \\
 	 		\hline
 	 		Filtro de Acción Derivativa & $N$ & $10$ \\
 	 		\hline
-	 		Tiempo de Muestreo & $T_s$ & $2.8$ s \\
+	 		Tiempo de Muestreo & $T_s$ & $2$ s \\
 	 		\hline
 	 		Factor Feedforward Edificio & $K_{ff,eva}$ & $0.87$ \\
 	 		\hline
